@@ -75,6 +75,8 @@ import {
   Package,
   Server,
   CalendarClock,
+  TicketCheck,
+  ClipboardList,
 } from 'lucide-react';
 
 // 获取侧边栏Lucide图标组件
@@ -122,6 +124,10 @@ export function getLucideIcon(key, selected = false) {
       return <CalendarClock {...commonProps} color={iconColor} />;
     case 'setting':
       return <Settings {...commonProps} color={iconColor} />;
+    case 'ticket':
+      return <TicketCheck {...commonProps} color={iconColor} />;
+    case 'ticket-management':
+      return <ClipboardList {...commonProps} color={iconColor} />;
     default:
       return <CircleUser {...commonProps} color={iconColor} />;
   }

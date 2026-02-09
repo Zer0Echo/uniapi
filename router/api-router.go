@@ -106,6 +106,10 @@ func SetApiRouter(router *gin.Engine) {
 				// Custom OAuth bindings
 				selfRoute.GET("/oauth/bindings", controller.GetUserOAuthBindings)
 				selfRoute.DELETE("/oauth/bindings/:provider_id", controller.UnbindCustomOAuth)
+
+				// Quota records (expiring balance)
+				selfRoute.GET("/self/quota_records", controller.GetSelfQuotaRecords)
+				selfRoute.GET("/self/quota_summary", controller.GetSelfQuotaSummary)
 			}
 
 			adminRoute := userRoute.Group("/")
@@ -267,6 +271,13 @@ func SetApiRouter(router *gin.Engine) {
 			redemptionRoute.DELETE("/invalid", controller.DeleteInvalidRedemption)
 			redemptionRoute.DELETE("/:id", controller.DeleteRedemption)
 		}
+		quotaRecordRoute := apiRouter.Group("/quota_record")
+		quotaRecordRoute.Use(middleware.AdminAuth())
+		{
+			quotaRecordRoute.GET("/user/:id", controller.GetUserQuotaRecords)
+			quotaRecordRoute.GET("/user/:id/summary", controller.GetUserQuotaSummary)
+			quotaRecordRoute.PUT("/:id", controller.UpdateQuotaRecord)
+		}
 		logRoute := apiRouter.Group("/log")
 		logRoute.GET("/", middleware.AdminAuth(), controller.GetAllLogs)
 		logRoute.DELETE("/", middleware.AdminAuth(), controller.DeleteHistoryLogs)
@@ -359,6 +370,29 @@ func SetApiRouter(router *gin.Engine) {
 			deploymentsRoute.PUT("/:id/name", controller.UpdateDeploymentName)
 			deploymentsRoute.POST("/:id/extend", controller.ExtendDeployment)
 			deploymentsRoute.DELETE("/:id", controller.DeleteDeployment)
+		}
+
+		ticketRoute := apiRouter.Group("/ticket")
+		{
+			ticketUserRoute := ticketRoute.Group("/")
+			ticketUserRoute.Use(middleware.UserAuth())
+			{
+				ticketUserRoute.GET("/self", controller.GetSelfTickets)
+				ticketUserRoute.GET("/self/search", controller.SearchSelfTickets)
+				ticketUserRoute.POST("/", controller.CreateTicket)
+				ticketUserRoute.POST("/:id/close", controller.CloseTicket)
+				ticketUserRoute.GET("/:id/messages", controller.GetTicketMessages)
+				ticketUserRoute.POST("/:id/messages", controller.AddTicketMessage)
+			}
+			ticketAdminRoute := ticketRoute.Group("/")
+			ticketAdminRoute.Use(middleware.AdminAuth())
+			{
+				ticketAdminRoute.GET("/", controller.GetAllTickets)
+				ticketAdminRoute.GET("/search", controller.SearchTickets)
+				ticketAdminRoute.PUT("/", controller.UpdateTicket)
+				ticketAdminRoute.DELETE("/:id", controller.DeleteTicket)
+				ticketAdminRoute.POST("/admin/:id/messages", controller.AdminAddTicketMessage)
+			}
 		}
 	}
 }

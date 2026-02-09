@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   API,
@@ -63,7 +63,18 @@ const EditRedemptionModal = (props) => {
     quota: 100000,
     count: 1,
     expired_time: null,
+    validity_period: 0,
   });
+
+  const validityPeriodOptions = useMemo(() => [
+    { value: 0, label: t('永久') },
+    { value: 86400, label: t('{{count}}天', { count: 1 }) },
+    { value: 604800, label: t('{{count}}天', { count: 7 }) },
+    { value: 2592000, label: t('{{count}}天', { count: 30 }) },
+    { value: 7776000, label: t('{{count}}天', { count: 90 }) },
+    { value: 15552000, label: t('{{count}}天', { count: 180 }) },
+    { value: 31536000, label: t('{{count}}天', { count: 365 }) },
+  ], [t]);
 
   const handleCancel = () => {
     props.handleClose();
@@ -105,6 +116,7 @@ const EditRedemptionModal = (props) => {
     let localInputs = { ...values };
     localInputs.count = parseInt(localInputs.count) || 0;
     localInputs.quota = parseInt(localInputs.quota) || 0;
+    localInputs.validity_period = parseInt(localInputs.validity_period) || 0;
     localInputs.name = name;
     if (!localInputs.expired_time) {
       localInputs.expired_time = 0;
@@ -251,7 +263,7 @@ const EditRedemptionModal = (props) => {
                         showClear
                       />
                     </Col>
-                    <Col span={24}>
+                    <Col span={12}>
                       <Form.DatePicker
                         field='expired_time'
                         label={t('过期时间')}
@@ -259,6 +271,16 @@ const EditRedemptionModal = (props) => {
                         placeholder={t('选择过期时间（可选，留空为永久）')}
                         style={{ width: '100%' }}
                         showClear
+                      />
+                    </Col>
+                    <Col span={12}>
+                      <Form.Select
+                        field='validity_period'
+                        label={t('额度有效期')}
+                        placeholder={t('额度有效期')}
+                        style={{ width: '100%' }}
+                        optionList={validityPeriodOptions}
+                        extraText={t('兑换后额度的有效时长，到期后未使用的额度将被回收')}
                       />
                     </Col>
                   </Row>

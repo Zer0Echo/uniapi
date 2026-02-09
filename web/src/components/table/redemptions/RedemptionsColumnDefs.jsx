@@ -39,6 +39,19 @@ export const isExpired = (record) => {
 };
 
 /**
+ * Format duration in seconds to human-readable string
+ */
+const formatDuration = (seconds, t) => {
+  if (!seconds || seconds === 0) return t('永久');
+  const days = Math.floor(seconds / 86400);
+  if (days > 0) return t('{{count}}天', { count: days });
+  const hours = Math.floor(seconds / 3600);
+  if (hours > 0) return `${hours}h`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}m`;
+};
+
+/**
  * Render timestamp
  */
 const renderTimestamp = (timestamp) => {
@@ -129,6 +142,13 @@ export const getRedemptionsColumns = ({
       dataIndex: 'expired_time',
       render: (text) => {
         return <div>{text === 0 ? t('永不过期') : renderTimestamp(text)}</div>;
+      },
+    },
+    {
+      title: t('额度有效期'),
+      dataIndex: 'validity_period',
+      render: (text) => {
+        return <div>{formatDuration(text, t)}</div>;
       },
     },
     {

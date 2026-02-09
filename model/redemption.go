@@ -25,8 +25,9 @@ type Redemption struct {
 	RedeemedTime int64          `json:"redeemed_time" gorm:"bigint"`
 	Count        int            `json:"count" gorm:"-:all"` // only for api request
 	UsedUserId   int            `json:"used_user_id"`
-	DeletedAt    gorm.DeletedAt `gorm:"index"`
-	ExpiredTime  int64          `json:"expired_time" gorm:"bigint"` // 过期时间，0 表示不过期
+	DeletedAt       gorm.DeletedAt `gorm:"index"`
+	ExpiredTime     int64          `json:"expired_time" gorm:"bigint"`     // 过期时间，0 表示不过期
+	ValidityPeriod  int64          `json:"validity_period" gorm:"bigint;default:0"` // Balance validity in seconds after redemption. 0 = balance never expires
 }
 
 func GetAllRedemptions(startIdx int, num int) (redemptions []*Redemption, total int64, err error) {
@@ -144,7 +145,23 @@ func Redeem(key string, userId int) (quota int, err error) {
 		if err != nil {
 			return err
 		}
-		redemption.RedeemedTime = common.GetTimestamp()
+		now := common.GetTimestamp()
+		// Create QuotaRecord if ValidityPeriod > 0 (expiring balance)
+		if redemption.ValidityPeriod > 0 {
+			quotaRecord := &QuotaRecord{
+				UserId:         userId,
+				RedemptionId:   redemption.Id,
+				OriginalAmount: redemption.Quota,
+				Remaining:      redemption.Quota,
+				Status:         common.QuotaRecordStatusActive,
+				ExpiredTime:    now + redemption.ValidityPeriod,
+			}
+			err = CreateQuotaRecord(tx, quotaRecord)
+			if err != nil {
+				return err
+			}
+		}
+		redemption.RedeemedTime = now
 		redemption.Status = common.RedemptionCodeStatusUsed
 		redemption.UsedUserId = userId
 		err = tx.Save(redemption).Error
@@ -172,7 +189,7 @@ func (redemption *Redemption) SelectUpdate() error {
 // Update Make sure your token's fields is completed, because this will update non-zero values
 func (redemption *Redemption) Update() error {
 	var err error
-	err = DB.Model(redemption).Select("name", "status", "quota", "redeemed_time", "expired_time").Updates(redemption).Error
+	err = DB.Model(redemption).Select("name", "status", "quota", "redeemed_time", "expired_time", "validity_period").Updates(redemption).Error
 	return err
 }
 

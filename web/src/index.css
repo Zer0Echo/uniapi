@@ -831,6 +831,21 @@ html.dark .with-pastel-balls::before {
   padding: 10px !important;
 }
 
+/* Modal 底部按钮间距与样式 */
+.semi-modal-footer > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.semi-modal-footer .semi-button-tertiary {
+  background-color: var(--semi-color-fill-0) !important;
+}
+
+.semi-modal-footer .semi-button-tertiary:hover {
+  background-color: var(--semi-color-fill-1) !important;
+}
+
 /* ==================== 使用日志: channel affinity tag ==================== */
 .semi-tag.channel-affinity-tag {
   border: 1px solid rgba(var(--semi-cyan-5), 0.35);

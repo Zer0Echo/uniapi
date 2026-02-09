@@ -113,7 +113,11 @@ func PreConsumeQuota(c *gin.Context, preConsumedQuota int, relayInfo *relaycommo
 		if err != nil {
 			return types.NewErrorWithStatusCode(err, types.ErrorCodePreConsumeTokenQuotaFailed, http.StatusForbidden, types.ErrOptionWithSkipRetry(), types.ErrOptionWithNoRecordErrorLog())
 		}
-		err = model.DecreaseUserQuota(relayInfo.UserId, preConsumedQuota)
+		if model.UserHasActiveQuotaRecords(relayInfo.UserId) {
+			err = model.DecreaseUserQuotaWithRecords(relayInfo.UserId, preConsumedQuota)
+		} else {
+			err = model.DecreaseUserQuota(relayInfo.UserId, preConsumedQuota)
+		}
 		if err != nil {
 			return types.NewError(err, types.ErrorCodeUpdateDataError, types.ErrOptionWithSkipRetry())
 		}

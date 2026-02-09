@@ -280,12 +280,35 @@ const (
 	MsgOAuthTrustLevelLow        = "oauth.trust_level_low"
 )
 
+// QuotaRecord related messages
+const (
+	MsgQuotaRecordNotFound     = "quota_record.not_found"
+	MsgQuotaRecordUpdateFailed = "quota_record.update_failed"
+	MsgValidityPeriodNegative  = "redemption.validity_period_negative"
+)
+
 // Model layer error messages (for translation in controller)
 const (
 	MsgRedeemFailed          = "redeem.failed"
 	MsgCreateDefaultTokenErr = "user.create_default_token_error"
 	MsgUuidDuplicate         = "common.uuid_duplicate"
 	MsgInvalidInput          = "common.invalid_input"
+)
+
+// Ticket related messages
+const (
+	MsgTicketTitleEmpty       = "ticket.title_empty"
+	MsgTicketTitleTooLong     = "ticket.title_too_long"
+	MsgTicketContentEmpty     = "ticket.content_empty"
+	MsgTicketContentTooLong   = "ticket.content_too_long"
+	MsgTicketNotFound         = "ticket.not_found"
+	MsgTicketAlreadyClosed    = "ticket.already_closed"
+	MsgTicketNoPermission     = "ticket.no_permission"
+	MsgTicketStatusInvalid    = "ticket.status_invalid"
+	MsgTicketPriorityInvalid  = "ticket.priority_invalid"
+	MsgTicketTooManyOpen      = "ticket.too_many_open"
+	MsgTicketDailyLimitReached = "ticket.daily_limit_reached"
+	MsgTicketMessageDailyLimit = "ticket.message_daily_limit"
 )
 
 // Custom OAuth provider related messages

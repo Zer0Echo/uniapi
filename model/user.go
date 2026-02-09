@@ -821,6 +821,38 @@ func decreaseUserQuota(id int, quota int) (err error) {
 	return err
 }
 
+// DecreaseUserQuotaWithRecords decreases user quota with FIFO consumption of expiring records.
+// This bypasses batch updates since FIFO ordering cannot be deferred.
+func DecreaseUserQuotaWithRecords(id int, quota int) (err error) {
+	if quota < 0 {
+		return errors.New("quota 不能为负数！")
+	}
+	gopool.Go(func() {
+		err := cacheDecrUserQuota(id, int64(quota))
+		if err != nil {
+			common.SysLog("failed to decrease user quota: " + err.Error())
+		}
+	})
+	return DB.Transaction(func(tx *gorm.DB) error {
+		// 1. On-demand expiration: expire any due records for this user
+		_, err := ExpireQuotaRecordsForUser(tx, id)
+		if err != nil {
+			return err
+		}
+
+		// 2. FIFO consumption: consume from earliest-expiring records first
+		_, err = ConsumeQuotaRecordsFIFO(tx, id, quota)
+		if err != nil {
+			return err
+		}
+
+		// 3. Decrease user.Quota
+		err = tx.Model(&User{}).Where("id = ?", id).
+			Update("quota", gorm.Expr("quota - ?", quota)).Error
+		return err
+	})
+}
+
 func DeltaUpdateUserQuota(id int, delta int) (err error) {
 	if delta == 0 {
 		return nil
