@@ -25,7 +25,12 @@ import {
   showSuccess,
   renderQuota,
   renderQuotaWithPrompt,
+  getCurrencyConfig,
 } from '../../../../helpers';
+import {
+  displayAmountToQuota,
+  quotaToDisplayAmount,
+} from '../../../../helpers/quota';
 import { useIsMobile } from '../../../../hooks/common/useIsMobile';
 import {
   Button,
@@ -42,6 +47,8 @@ import {
   Col,
   Input,
   InputNumber,
+  RadioGroup,
+  Radio,
 } from '@douyinfe/semi-ui';
 import {
   IconUser,
@@ -60,6 +67,7 @@ const EditUserModal = (props) => {
   const [loading, setLoading] = useState(true);
   const [addQuotaModalOpen, setIsModalOpen] = useState(false);
   const [addQuotaLocal, setAddQuotaLocal] = useState('');
+  const [quotaInputMode, setQuotaInputMode] = useState('tokens');
   const isMobile = useIsMobile();
   const [groupOptions, setGroupOptions] = useState([]);
   const formApiRef = useRef(null);
@@ -136,7 +144,15 @@ const EditUserModal = (props) => {
   /* --------------------- quota helper -------------------- */
   const addLocalQuota = () => {
     const current = parseInt(formApiRef.current?.getValue('quota') || 0);
-    const delta = parseInt(addQuotaLocal) || 0;
+    let delta;
+    if (quotaInputMode === 'amount') {
+      const amountVal = parseFloat(addQuotaLocal) || 0;
+      delta = amountVal < 0
+        ? -displayAmountToQuota(Math.abs(amountVal))
+        : displayAmountToQuota(amountVal);
+    } else {
+      delta = parseInt(addQuotaLocal) || 0;
+    }
     formApiRef.current?.setValue('quota', current + delta);
   };
 
@@ -367,8 +383,12 @@ const EditUserModal = (props) => {
         onOk={() => {
           addLocalQuota();
           setIsModalOpen(false);
+          setAddQuotaLocal('');
         }}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setAddQuotaLocal('');
+        }}
         closable={null}
         title={
           <div className='flex items-center'>
@@ -378,22 +398,62 @@ const EditUserModal = (props) => {
         }
       >
         <div className='mb-4'>
+          <RadioGroup
+            type='button'
+            value={quotaInputMode}
+            onChange={(e) => {
+              setQuotaInputMode(e.target.value);
+              setAddQuotaLocal('');
+            }}
+            style={{ marginBottom: 12 }}
+          >
+            <Radio value='tokens'>{t('Token')}</Radio>
+            <Radio value='amount'>
+              {(() => {
+                const { type, symbol } = getCurrencyConfig();
+                return type === 'TOKENS'
+                  ? t('金额') + ' ($)'
+                  : t('金额') + ` (${symbol})`;
+              })()}
+            </Radio>
+          </RadioGroup>
+        </div>
+        <div className='mb-4'>
           {(() => {
             const current = formApiRef.current?.getValue('quota') || 0;
+            let deltaQuota;
+            if (quotaInputMode === 'amount') {
+              const amountVal = parseFloat(addQuotaLocal) || 0;
+              deltaQuota = amountVal < 0
+                ? -displayAmountToQuota(Math.abs(amountVal))
+                : displayAmountToQuota(amountVal);
+            } else {
+              deltaQuota = parseInt(addQuotaLocal || 0);
+            }
             return (
               <Text type='secondary' className='block mb-2'>
-                {`${t('新额度：')}${renderQuota(current)} + ${renderQuota(addQuotaLocal)} = ${renderQuota(current + parseInt(addQuotaLocal || 0))}`}
+                {`${t('新额度：')}${renderQuota(current)} + ${renderQuota(deltaQuota)} = ${renderQuota(current + deltaQuota)}`}
               </Text>
             );
           })()}
         </div>
         <InputNumber
-          placeholder={t('需要添加的额度（支持负数）')}
+          placeholder={
+            quotaInputMode === 'amount'
+              ? t('请输入金额（支持负数）')
+              : t('需要添加的额度（支持负数）')
+          }
           value={addQuotaLocal}
           onChange={setAddQuotaLocal}
           style={{ width: '100%' }}
           showClear
-          step={500000}
+          step={quotaInputMode === 'amount' ? 1 : 500000}
+          precision={quotaInputMode === 'amount' ? 2 : 0}
+          prefix={
+            quotaInputMode === 'amount'
+              ? getCurrencyConfig().symbol
+              : undefined
+          }
         />
       </Modal>
     </>
