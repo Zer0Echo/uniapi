@@ -110,6 +110,25 @@ export const getRedemptionsColumns = ({
       dataIndex: 'name',
     },
     {
+      title: t('类型'),
+      dataIndex: 'plan_id',
+      render: (text) => {
+        return (
+          <div>
+            {text > 0 ? (
+              <Tag color='blue' shape='circle'>
+                {t('订阅')}
+              </Tag>
+            ) : (
+              <Tag color='green' shape='circle'>
+                {t('余额')}
+              </Tag>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       title: t('状态'),
       dataIndex: 'status',
       key: 'status',
@@ -120,7 +139,16 @@ export const getRedemptionsColumns = ({
     {
       title: t('额度'),
       dataIndex: 'quota',
-      render: (text) => {
+      render: (text, record) => {
+        if (record.plan_id > 0) {
+          return (
+            <div>
+              <Tag color='blue' shape='circle'>
+                {t('订阅套餐')}
+              </Tag>
+            </div>
+          );
+        }
         return (
           <div>
             <Tag color='grey' shape='circle'>
@@ -147,7 +175,10 @@ export const getRedemptionsColumns = ({
     {
       title: t('额度有效期'),
       dataIndex: 'validity_period',
-      render: (text) => {
+      render: (text, record) => {
+        if (record.plan_id > 0) {
+          return <div>—</div>;
+        }
         return <div>{formatDuration(text, t)}</div>;
       },
     },

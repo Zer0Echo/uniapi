@@ -23,7 +23,7 @@ const makeAreaSpec = (data, title, color) => ({
   ],
   tooltip: { mark: { title: { visible: false } } },
   title: { visible: true, text: title, textStyle: { fontSize: 13, fontWeight: 600 } },
-  padding: { top: 40, bottom: 20, left: 10, right: 10 },
+  padding: { top: 5, bottom: 20, left: 10, right: 10 },
 });
 
 const makeBarSpec = (data, title, color) => ({
@@ -38,7 +38,7 @@ const makeBarSpec = (data, title, color) => ({
   ],
   tooltip: { mark: { title: { visible: false } } },
   title: { visible: true, text: title, textStyle: { fontSize: 13, fontWeight: 600 } },
-  padding: { top: 40, bottom: 20, left: 10, right: 10 },
+  padding: { top: 5, bottom: 20, left: 10, right: 10 },
 });
 
 const CHARTS_ADMIN = [

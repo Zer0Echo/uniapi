@@ -23,7 +23,7 @@ const makePieSpec = (data, title) => ({
   tooltip: { mark: { content: [{ key: (d) => d.name, value: (d) => d.value?.toLocaleString() }] } },
   title: { visible: true, text: title, textStyle: { fontSize: 13, fontWeight: 600 } },
   legends: { visible: true, orient: 'bottom', item: { shape: { style: { size: 8 } } } },
-  padding: { top: 40, bottom: 10, left: 10, right: 10 },
+  padding: { top: 5, bottom: 10, left: 10, right: 10 },
 });
 
 const makeHBarSpec = (data, title, color) => ({
@@ -39,7 +39,7 @@ const makeHBarSpec = (data, title, color) => ({
   ],
   tooltip: { mark: { title: { visible: false } } },
   title: { visible: true, text: title, textStyle: { fontSize: 13, fontWeight: 600 } },
-  padding: { top: 40, bottom: 20, left: 10, right: 10 },
+  padding: { top: 5, bottom: 20, left: 10, right: 10 },
 });
 
 const PANELS_ADMIN = [

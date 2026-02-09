@@ -9,6 +9,7 @@ import PerformanceCards from './PerformanceCards';
 import PeriodSummaryCards from './PeriodSummaryCards';
 import TrendChartPanels from './TrendChartPanels';
 import DistributionPanels from './DistributionPanels';
+import ModelConsumptionChart from './ModelConsumptionChart';
 import ApiInfoPanel from './ApiInfoPanel';
 import AnnouncementsPanel from './AnnouncementsPanel';
 import FaqPanel from './FaqPanel';
@@ -124,6 +125,12 @@ const MonitorDashboard = () => {
         isAdmin={isAdminUser}
         t={t}
       />
+
+      {/* Model Consumption Distribution Chart */}
+      <div className='mb-4'>
+        <ModelConsumptionChart t={t} />
+      </div>
+
       <TrendChartPanels
         data={data}
         loading={loading}

@@ -156,8 +156,9 @@ type SubscriptionPlan struct {
 	DurationValue int    `json:"duration_value" gorm:"type:int;not null;default:1"`
 	CustomSeconds int64  `json:"custom_seconds" gorm:"type:bigint;not null;default:0"`
 
-	Enabled   bool `json:"enabled" gorm:"default:true"`
-	SortOrder int  `json:"sort_order" gorm:"type:int;default:0"`
+	Enabled     bool `json:"enabled" gorm:"default:true"`
+	Purchasable bool `json:"purchasable" gorm:"default:true"` // false=仅兑换码激活，不可直接购买
+	SortOrder   int  `json:"sort_order" gorm:"type:int;default:0"`
 
 	StripePriceId  string `json:"stripe_price_id" gorm:"type:varchar(128);default:''"`
 	CreemProductId string `json:"creem_product_id" gorm:"type:varchar(128);default:''"`

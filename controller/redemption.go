@@ -81,9 +81,25 @@ func AddRedemption(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": msg})
 		return
 	}
-	if redemption.ValidityPeriod < 0 {
-		common.ApiErrorI18n(c, i18n.MsgValidityPeriodNegative)
-		return
+	if redemption.PlanId > 0 {
+		// Subscription code: validate plan exists and is enabled
+		plan, err := model.GetSubscriptionPlanById(redemption.PlanId)
+		if err != nil || plan == nil {
+			common.ApiErrorI18n(c, i18n.MsgRedemptionPlanNotFound)
+			return
+		}
+		if !plan.Enabled {
+			common.ApiErrorI18n(c, i18n.MsgRedemptionPlanDisabled)
+			return
+		}
+		redemption.Quota = 0
+		redemption.ValidityPeriod = 0
+	} else {
+		// Balance code: existing validation
+		if redemption.ValidityPeriod < 0 {
+			common.ApiErrorI18n(c, i18n.MsgValidityPeriodNegative)
+			return
+		}
 	}
 	var keys []string
 	for i := 0; i < redemption.Count; i++ {
@@ -96,6 +112,7 @@ func AddRedemption(c *gin.Context) {
 			Quota:          redemption.Quota,
 			ExpiredTime:    redemption.ExpiredTime,
 			ValidityPeriod: redemption.ValidityPeriod,
+			PlanId:         redemption.PlanId,
 		}
 		err = cleanRedemption.Insert()
 		if err != nil {
@@ -154,6 +171,7 @@ func UpdateRedemption(c *gin.Context) {
 		cleanRedemption.Quota = redemption.Quota
 		cleanRedemption.ExpiredTime = redemption.ExpiredTime
 		cleanRedemption.ValidityPeriod = redemption.ValidityPeriod
+		cleanRedemption.PlanId = redemption.PlanId
 	}
 	if statusOnly != "" {
 		cleanRedemption.Status = redemption.Status
