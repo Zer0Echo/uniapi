@@ -1,0 +1,23 @@
+UniAPI
+Copyright 2025 Zer0Echo (https://github.com/Zer0Echo)
+
+This project is a derivative work based on the following open-source projects,
+licensed under the GNU Affero General Public License v3.0 (AGPL-3.0):
+
+1. New API (new-api)
+   Original Author: Calcium-Ion (https://github.com/Calcium-Ion)
+   Repository: https://github.com/Calcium-Ion/new-api
+   License: AGPL-3.0
+
+2. One API (one-api)
+   Original Author: JustSong (https://github.com/songquanpeng)
+   Repository: https://github.com/songquanpeng/one-api
+   License: MIT
+
+This software contains modifications and new features developed by Zer0Echo.
+The full source code is available at: https://github.com/Zer0Echo/uniapi
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.

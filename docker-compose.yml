@@ -1,5 +1,5 @@
-# New-API Docker Compose Configuration
-# 
+# UniAPI Docker Compose Configuration
+#
 # Quick Start:
 #   1. docker-compose up -d
 #   2. Access at http://localhost:3000
@@ -15,10 +15,9 @@
 version: '3.4' # For compatibility with older Docker versions
 
 services:
-  new-api:
-    # image: calciumion/new-api:latest
-    image: haoyangchen/apimanage
-    container_name: new-api
+  uniapi:
+    image: zer0echo/uniapi:latest
+    container_name: uniapi
     restart: always
     command: --log-dir /app/logs
     ports:
@@ -27,8 +26,8 @@ services:
       - ./data:/data
       - ./logs:/app/logs
     environment:
-      - SQL_DSN=postgresql://root:Chyshabi666@postgres:5432/new-api # ⚠️ IMPORTANT: Change the password in production!
-#      - SQL_DSN=root:123456@tcp(mysql:3306)/new-api  # Point to the mysql service, uncomment if using MySQL
+      - SQL_DSN=postgresql://root:123456@postgres:5432/uniapi # ⚠️ IMPORTANT: Change the password in production!
+#      - SQL_DSN=root:123456@tcp(mysql:3306)/uniapi  # Point to the mysql service, uncomment if using MySQL
       - REDIS_CONN_STRING=redis://redis
       - TZ=Asia/Shanghai
       - ERROR_LOG_ENABLED=true # 是否启用错误日志记录 (Whether to enable error log recording)
@@ -61,8 +60,8 @@ services:
     restart: always
     environment:
       POSTGRES_USER: root
-      POSTGRES_PASSWORD: Chyshabi666  # ⚠️ IMPORTANT: Change this password in production!
-      POSTGRES_DB: new-api
+      POSTGRES_PASSWORD: 123456  # ⚠️ IMPORTANT: Change this password in production!
+      POSTGRES_DB: uniapi
     volumes:
       - pg_data:/var/lib/postgresql/data
 #    ports:
@@ -74,7 +73,7 @@ services:
 #    restart: always
 #    environment:
 #      MYSQL_ROOT_PASSWORD: 123456  # ⚠️ IMPORTANT: Change this password in production!
-#      MYSQL_DATABASE: new-api
+#      MYSQL_DATABASE: uniapi
 #    volumes:
 #      - mysql_data:/var/lib/mysql
 #    ports:
