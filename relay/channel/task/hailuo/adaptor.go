@@ -10,16 +10,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/model"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/relay/channel"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/Zer0Echo/uniapi/constant"
+	"github.com/Zer0Echo/uniapi/dto"
+	"github.com/Zer0Echo/uniapi/relay/channel"
+	relaycommon "github.com/Zer0Echo/uniapi/relay/common"
+	"github.com/Zer0Echo/uniapi/service"
 )
 
 // https://platform.minimaxi.com/docs/api-reference/video-generation-intro

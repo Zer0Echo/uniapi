@@ -4,13 +4,13 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/relay/channel/xinference"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/constant"
+	"github.com/Zer0Echo/uniapi/dto"
+	"github.com/Zer0Echo/uniapi/relay/channel/xinference"
+	relaycommon "github.com/Zer0Echo/uniapi/relay/common"
+	"github.com/Zer0Echo/uniapi/service"
+	"github.com/Zer0Echo/uniapi/types"
 
 	"github.com/gin-gonic/gin"
 )

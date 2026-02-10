@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/QuantumNous/new-api/setting/model_setting"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/constant"
+	"github.com/Zer0Echo/uniapi/dto"
+	relayconstant "github.com/Zer0Echo/uniapi/relay/constant"
+	"github.com/Zer0Echo/uniapi/setting/model_setting"
+	"github.com/Zer0Echo/uniapi/types"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

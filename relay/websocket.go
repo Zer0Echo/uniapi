@@ -3,10 +3,10 @@ package relay
 import (
 	"fmt"
 
-	"github.com/QuantumNous/new-api/dto"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/Zer0Echo/uniapi/dto"
+	relaycommon "github.com/Zer0Echo/uniapi/relay/common"
+	"github.com/Zer0Echo/uniapi/service"
+	"github.com/Zer0Echo/uniapi/types"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

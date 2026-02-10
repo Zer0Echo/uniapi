@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/QuantumNous/new-api/model"
+	"github.com/Zer0Echo/uniapi/model"
 	"github.com/gin-gonic/gin"
 )
 

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/setting/console_setting"
+	"github.com/Zer0Echo/uniapi/setting/console_setting"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/logger"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/logger"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"

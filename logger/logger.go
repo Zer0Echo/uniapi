@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/setting/operation_setting"
 
 	"github.com/bytedance/gopkg/util/gopool"
 	"github.com/gin-gonic/gin"

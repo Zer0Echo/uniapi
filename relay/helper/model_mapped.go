@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/relay/common"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/Zer0Echo/uniapi/dto"
+	"github.com/Zer0Echo/uniapi/relay/common"
+	relayconstant "github.com/Zer0Echo/uniapi/relay/constant"
+	"github.com/Zer0Echo/uniapi/setting/ratio_setting"
 	"github.com/gin-gonic/gin"
 )
 

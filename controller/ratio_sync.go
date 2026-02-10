@@ -11,12 +11,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/logger"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/logger"
 
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/Zer0Echo/uniapi/dto"
+	"github.com/Zer0Echo/uniapi/model"
+	"github.com/Zer0Echo/uniapi/setting/ratio_setting"
 
 	"github.com/gin-gonic/gin"
 )

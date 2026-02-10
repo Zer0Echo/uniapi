@@ -8,10 +8,10 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/Zer0Echo/uniapi/constant"
+	"github.com/Zer0Echo/uniapi/logger"
+	"github.com/Zer0Echo/uniapi/model"
+	"github.com/Zer0Echo/uniapi/service"
 
 	"github.com/gin-gonic/gin"
 )

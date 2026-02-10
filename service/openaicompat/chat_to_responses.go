@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/dto"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/dto"
 )
 
 func normalizeChatImageURLToString(v any) any {

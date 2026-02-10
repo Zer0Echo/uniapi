@@ -1,6 +1,6 @@
 package operation_setting
 
-import "github.com/QuantumNous/new-api/setting/config"
+import "github.com/Zer0Echo/uniapi/setting/config"
 
 // TokenSetting 令牌相关配置
 type TokenSetting struct {

@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/relay/channel/codex"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/constant"
+	"github.com/Zer0Echo/uniapi/model"
+	"github.com/Zer0Echo/uniapi/relay/channel/codex"
+	"github.com/Zer0Echo/uniapi/service"
 
 	"github.com/gin-gonic/gin"
 )

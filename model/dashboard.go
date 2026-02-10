@@ -2,10 +2,25 @@ package model
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/Zer0Echo/uniapi/common"
 )
+
+// parallelExec runs functions concurrently and waits for all to complete.
+func parallelExec(fns ...func()) {
+	var wg sync.WaitGroup
+	wg.Add(len(fns))
+	for _, fn := range fns {
+		fn := fn
+		go func() {
+			defer wg.Done()
+			fn()
+		}()
+	}
+	wg.Wait()
+}
 
 // ============================================================
 // DTO structs
@@ -420,12 +435,15 @@ func DashboardGetUserDistribution(limit int, startTs, endTs int64) ([]DistItem, 
 
 func dashboardGetPeriodSummary(startTs, endTs int64, userId int, includeTopUp bool) PeriodSummary {
 	var ps PeriodSummary
-	ps.Consumed, _ = DashboardSumQuota(startTs, endTs, userId)
-	ps.Requests, _ = DashboardCountRequests(startTs, endTs, userId)
-	ps.Tokens, _ = DashboardSumTokens(startTs, endTs, userId)
-	if includeTopUp && userId == 0 {
-		ps.TopUp, _ = DashboardSumTopUpMoney(startTs, endTs)
+	fns := []func(){
+		func() { ps.Consumed, _ = DashboardSumQuota(startTs, endTs, userId) },
+		func() { ps.Requests, _ = DashboardCountRequests(startTs, endTs, userId) },
+		func() { ps.Tokens, _ = DashboardSumTokens(startTs, endTs, userId) },
 	}
+	if includeTopUp && userId == 0 {
+		fns = append(fns, func() { ps.TopUp, _ = DashboardSumTopUpMoney(startTs, endTs) })
+	}
+	parallelExec(fns...)
 	return ps
 }
 
@@ -461,41 +479,58 @@ func GetDashboardOverviewAdmin(startTs, endTs int64) (*DashboardOverview, error)
 	}
 
 	// Row 1 (snapshot data, not affected by time range)
-	o.TotalUsers, _ = DashboardCountTotalUsers()
-	o.TodayNewUsers, _ = DashboardCountNewUsers(todayStart)
-	o.MonthNewUsers, _ = DashboardCountNewUsers(monthStart)
-	o.SubscriptionUsers, _ = DashboardCountActiveSubscriptionUsers()
-	o.TotalChannels, _ = CountAllChannels()
-	o.ActiveChannels, _ = DashboardCountActiveChannels()
-	o.TotalBalance, _ = DashboardSumAllUserBalance()
-	o.TotalTopUp, _ = DashboardSumTopUpMoney(0, 0)
-	o.TotalConsumed, _ = DashboardSumAllUserUsedQuota()
+	parallelExec(
+		func() { o.TotalUsers, _ = DashboardCountTotalUsers() },
+		func() { o.TodayNewUsers, _ = DashboardCountNewUsers(todayStart) },
+		func() { o.MonthNewUsers, _ = DashboardCountNewUsers(monthStart) },
+		func() { o.SubscriptionUsers, _ = DashboardCountActiveSubscriptionUsers() },
+		func() { o.TotalChannels, _ = CountAllChannels() },
+		func() { o.ActiveChannels, _ = DashboardCountActiveChannels() },
+		func() { o.TotalBalance, _ = DashboardSumAllUserBalance() },
+		func() { o.TotalTopUp, _ = DashboardSumTopUpMoney(0, 0) },
+		func() { o.TotalConsumed, _ = DashboardSumAllUserUsedQuota() },
+	)
 	o.EstimatedProfit = o.TotalTopUp - float64(o.TotalConsumed)/common.QuotaPerUnit
 
-	// Row 2 (filtered by time range)
-	o.TotalTokens, _ = DashboardSumTokens(perfStart, perfEnd, 0)
-	o.TotalRequests, _ = DashboardCountRequests(perfStart, perfEnd, 0)
-	o.AvgLatency, _ = DashboardAvgLatency(perfStart, perfEnd, 0)
-	o.SuccessRate, _ = DashboardSuccessRate(perfStart, perfEnd, 0)
-	o.TodayErrors, _ = DashboardCountErrors(perfStart, perfEnd, 0)
-	o.AvgTTFT, _ = DashboardAvgTTFT(perfStart, perfEnd, 0)
+	// Row 2 (filtered by time range) — inline SuccessRate to avoid 2 redundant queries
+	var consumeCount, errorCount int64
+	parallelExec(
+		func() { o.TotalTokens, _ = DashboardSumTokens(perfStart, perfEnd, 0) },
+		func() { consumeCount, _ = DashboardCountRequests(perfStart, perfEnd, 0) },
+		func() { errorCount, _ = DashboardCountErrors(perfStart, perfEnd, 0) },
+		func() { o.AvgLatency, _ = DashboardAvgLatency(perfStart, perfEnd, 0) },
+		func() { o.AvgTTFT, _ = DashboardAvgTTFT(perfStart, perfEnd, 0) },
+	)
+	o.TotalRequests = consumeCount
+	o.TodayErrors = errorCount
+	if total := consumeCount + errorCount; total > 0 {
+		o.SuccessRate = float64(consumeCount) / float64(total) * 100
+	} else {
+		o.SuccessRate = 100
+	}
 
 	// Row 3 (always fixed periods)
-	o.PeriodToday = dashboardGetPeriodSummary(todayStart, nowTs, 0, true)
-	o.PeriodWeek = dashboardGetPeriodSummary(weekStart, nowTs, 0, true)
-	o.PeriodMonth = dashboardGetPeriodSummary(monthStart, nowTs, 0, true)
+	parallelExec(
+		func() { o.PeriodToday = dashboardGetPeriodSummary(todayStart, nowTs, 0, true) },
+		func() { o.PeriodWeek = dashboardGetPeriodSummary(weekStart, nowTs, 0, true) },
+		func() { o.PeriodMonth = dashboardGetPeriodSummary(monthStart, nowTs, 0, true) },
+	)
 
 	// Row 4 (filtered by time range)
-	o.ConsumeTrend, _ = DashboardGetConsumeTrend(trendStart, trendEnd, 0)
-	o.RequestTrend, _ = DashboardGetRequestTrend(trendStart, trendEnd, 0)
-	o.TokenTrend, _ = DashboardGetTokenTrend(trendStart, trendEnd, 0)
-	o.TopUpTrend, _ = DashboardGetTopUpTrend(trendStart, trendEnd)
+	parallelExec(
+		func() { o.ConsumeTrend, _ = DashboardGetConsumeTrend(trendStart, trendEnd, 0) },
+		func() { o.RequestTrend, _ = DashboardGetRequestTrend(trendStart, trendEnd, 0) },
+		func() { o.TokenTrend, _ = DashboardGetTokenTrend(trendStart, trendEnd, 0) },
+		func() { o.TopUpTrend, _ = DashboardGetTopUpTrend(trendStart, trendEnd) },
+	)
 
 	// Row 5 (distributions, default to 14 days)
-	o.ModelRequestDist, _ = DashboardGetModelDistribution(10, distStart, distEnd, 0)
-	o.UserRequestDist, _ = DashboardGetUserDistribution(10, distStart, distEnd)
-	o.TopModels, _ = DashboardGetModelDistribution(6, distStart, distEnd, 0)
-	o.TopUsers, _ = DashboardGetUserDistribution(6, distStart, distEnd)
+	parallelExec(
+		func() { o.ModelRequestDist, _ = DashboardGetModelDistribution(10, distStart, distEnd, 0) },
+		func() { o.UserRequestDist, _ = DashboardGetUserDistribution(10, distStart, distEnd) },
+		func() { o.TopModels, _ = DashboardGetModelDistribution(6, distStart, distEnd, 0) },
+		func() { o.TopUsers, _ = DashboardGetUserDistribution(6, distStart, distEnd) },
+	)
 
 	return o, nil
 }
@@ -527,43 +562,60 @@ func GetDashboardOverviewUser(userId int, startTs, endTs int64) (*DashboardOverv
 	}
 
 	// Row 1 (user-specific, snapshot)
-	o.TotalBalance, _ = DashboardGetUserBalance(userId)
-	o.TotalConsumed, _ = DashboardGetUserUsedQuota(userId)
+	parallelExec(
+		func() { o.TotalBalance, _ = DashboardGetUserBalance(userId) },
+		func() { o.TotalConsumed, _ = DashboardGetUserUsedQuota(userId) },
+		func() {
+			subMap, err := GetActiveSubscriptionsByUserIds([]int{userId})
+			if err == nil {
+				if sub, ok := subMap[userId]; ok {
+					o.HasSubscription = true
+					o.SubscriptionQuotaTotal = sub.AmountTotal
+					o.SubscriptionQuotaUsed = sub.AmountUsed
+					o.SubscriptionEndTime = sub.EndTime
+					titles, _ := GetSubscriptionPlanTitlesByIds([]int{sub.PlanId})
+					o.SubscriptionPlanTitle = titles[sub.PlanId]
+				}
+			}
+		},
+	)
 
-	// Subscription info
-	subMap, err := GetActiveSubscriptionsByUserIds([]int{userId})
-	if err == nil {
-		if sub, ok := subMap[userId]; ok {
-			o.HasSubscription = true
-			o.SubscriptionQuotaTotal = sub.AmountTotal
-			o.SubscriptionQuotaUsed = sub.AmountUsed
-			o.SubscriptionEndTime = sub.EndTime
-			titles, _ := GetSubscriptionPlanTitlesByIds([]int{sub.PlanId})
-			o.SubscriptionPlanTitle = titles[sub.PlanId]
-		}
+	// Row 2 (filtered) — inline SuccessRate to avoid 2 redundant queries
+	var consumeCount, errorCount int64
+	parallelExec(
+		func() { o.TotalTokens, _ = DashboardSumTokens(perfStart, perfEnd, userId) },
+		func() { consumeCount, _ = DashboardCountRequests(perfStart, perfEnd, userId) },
+		func() { errorCount, _ = DashboardCountErrors(perfStart, perfEnd, userId) },
+		func() { o.AvgLatency, _ = DashboardAvgLatency(perfStart, perfEnd, userId) },
+		func() { o.AvgTTFT, _ = DashboardAvgTTFT(perfStart, perfEnd, userId) },
+	)
+	o.TotalRequests = consumeCount
+	o.TodayErrors = errorCount
+	if total := consumeCount + errorCount; total > 0 {
+		o.SuccessRate = float64(consumeCount) / float64(total) * 100
+	} else {
+		o.SuccessRate = 100
 	}
 
-	// Row 2 (filtered)
-	o.TotalTokens, _ = DashboardSumTokens(perfStart, perfEnd, userId)
-	o.TotalRequests, _ = DashboardCountRequests(perfStart, perfEnd, userId)
-	o.AvgLatency, _ = DashboardAvgLatency(perfStart, perfEnd, userId)
-	o.SuccessRate, _ = DashboardSuccessRate(perfStart, perfEnd, userId)
-	o.TodayErrors, _ = DashboardCountErrors(perfStart, perfEnd, userId)
-	o.AvgTTFT, _ = DashboardAvgTTFT(perfStart, perfEnd, userId)
-
 	// Row 3 (always fixed periods)
-	o.PeriodToday = dashboardGetPeriodSummary(todayStart, nowTs, userId, false)
-	o.PeriodWeek = dashboardGetPeriodSummary(weekStart, nowTs, userId, false)
-	o.PeriodMonth = dashboardGetPeriodSummary(monthStart, nowTs, userId, false)
+	parallelExec(
+		func() { o.PeriodToday = dashboardGetPeriodSummary(todayStart, nowTs, userId, false) },
+		func() { o.PeriodWeek = dashboardGetPeriodSummary(weekStart, nowTs, userId, false) },
+		func() { o.PeriodMonth = dashboardGetPeriodSummary(monthStart, nowTs, userId, false) },
+	)
 
 	// Row 4 (filtered)
-	o.ConsumeTrend, _ = DashboardGetConsumeTrend(trendStart, trendEnd, userId)
-	o.RequestTrend, _ = DashboardGetRequestTrend(trendStart, trendEnd, userId)
-	o.TokenTrend, _ = DashboardGetTokenTrend(trendStart, trendEnd, userId)
+	parallelExec(
+		func() { o.ConsumeTrend, _ = DashboardGetConsumeTrend(trendStart, trendEnd, userId) },
+		func() { o.RequestTrend, _ = DashboardGetRequestTrend(trendStart, trendEnd, userId) },
+		func() { o.TokenTrend, _ = DashboardGetTokenTrend(trendStart, trendEnd, userId) },
+	)
 
 	// Row 5 (distributions, default to 14 days)
-	o.ModelRequestDist, _ = DashboardGetModelDistribution(10, distStart, distEnd, userId)
-	o.TopModels, _ = DashboardGetModelDistribution(6, distStart, distEnd, userId)
+	parallelExec(
+		func() { o.ModelRequestDist, _ = DashboardGetModelDistribution(10, distStart, distEnd, userId) },
+		func() { o.TopModels, _ = DashboardGetModelDistribution(6, distStart, distEnd, userId) },
+	)
 
 	return o, nil
 }

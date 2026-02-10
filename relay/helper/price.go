@@ -3,12 +3,12 @@ package helper
 import (
 	"fmt"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/logger"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/logger"
+	relaycommon "github.com/Zer0Echo/uniapi/relay/common"
+	"github.com/Zer0Echo/uniapi/setting/operation_setting"
+	"github.com/Zer0Echo/uniapi/setting/ratio_setting"
+	"github.com/Zer0Echo/uniapi/types"
 
 	"github.com/gin-gonic/gin"
 )

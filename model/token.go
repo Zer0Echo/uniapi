@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/setting/operation_setting"
 	"github.com/bytedance/gopkg/util/gopool"
 	"gorm.io/gorm"
 )
 
 type Token struct {
 	Id                 int            `json:"id"`
-	UserId             int            `json:"user_id" gorm:"index"`
+	UserId             int            `json:"user_id" gorm:"index;index:idx_token_user_status,priority:1"`
 	Key                string         `json:"key" gorm:"type:char(48);uniqueIndex"`
-	Status             int            `json:"status" gorm:"default:1"`
+	Status             int            `json:"status" gorm:"default:1;index:idx_token_user_status,priority:2"`
 	Name               string         `json:"name" gorm:"index" `
 	CreatedTime        int64          `json:"created_time" gorm:"bigint"`
 	AccessedTime       int64          `json:"accessed_time" gorm:"bigint"`

@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/setting/system_setting"
 
 	"golang.org/x/net/proxy"
 )

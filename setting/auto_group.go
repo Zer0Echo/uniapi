@@ -1,7 +1,7 @@
 package setting
 
 import (
-	"github.com/QuantumNous/new-api/common"
+	"github.com/Zer0Echo/uniapi/common"
 )
 
 var autoGroups = []string{

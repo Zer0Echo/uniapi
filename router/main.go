@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/Zer0Echo/uniapi/common"
 
 	"github.com/gin-gonic/gin"
 )

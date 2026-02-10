@@ -9,10 +9,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/constant"
+	"github.com/Zer0Echo/uniapi/dto"
+	"github.com/Zer0Echo/uniapi/types"
 
 	"github.com/samber/lo"
 	"gorm.io/gorm"
@@ -24,7 +24,7 @@ type Channel struct {
 	Key                string  `json:"key" gorm:"not null"`
 	OpenAIOrganization *string `json:"openai_organization"`
 	TestModel          *string `json:"test_model"`
-	Status             int     `json:"status" gorm:"default:1"`
+	Status             int     `json:"status" gorm:"default:1;index:idx_channel_status_priority,priority:1"`
 	Name               string  `json:"name" gorm:"index"`
 	Weight             *uint   `json:"weight" gorm:"default:0"`
 	CreatedTime        int64   `json:"created_time" gorm:"bigint"`
@@ -40,7 +40,7 @@ type Channel struct {
 	ModelMapping       *string `json:"model_mapping" gorm:"type:text"`
 	//MaxInputTokens     *int    `json:"max_input_tokens" gorm:"default:0"`
 	StatusCodeMapping *string `json:"status_code_mapping" gorm:"type:varchar(1024);default:''"`
-	Priority          *int64  `json:"priority" gorm:"bigint;default:0"`
+	Priority          *int64  `json:"priority" gorm:"bigint;default:0;index:idx_channel_status_priority,priority:2"`
 	AutoBan           *int    `json:"auto_ban" gorm:"default:1"`
 	OtherInfo         string  `json:"other_info"`
 	Tag               *string `json:"tag" gorm:"index"`

@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/i18n"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/Zer0Echo/uniapi/i18n"
+	"github.com/Zer0Echo/uniapi/logger"
+	"github.com/Zer0Echo/uniapi/model"
+	"github.com/Zer0Echo/uniapi/setting/system_setting"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )

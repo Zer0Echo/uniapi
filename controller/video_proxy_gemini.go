@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/relay"
+	"github.com/Zer0Echo/uniapi/constant"
+	"github.com/Zer0Echo/uniapi/model"
+	"github.com/Zer0Echo/uniapi/relay"
 )
 
 func getGeminiVideoURL(channel *model.Channel, task *model.Task, apiKey string) (string, error) {
