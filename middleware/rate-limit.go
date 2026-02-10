@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/Zer0Echo/uniapi/common"
 	"github.com/gin-gonic/gin"
 )
-
-var timeFormat = "2006-01-02T15:04:05.000Z"
 
 var inMemoryRateLimiter common.InMemoryRateLimiter
 
@@ -22,6 +21,8 @@ func redisRateLimiter(c *gin.Context, maxRequestNum int, duration int64, mark st
 	ctx := context.Background()
 	rdb := common.RDB
 	key := "rateLimit:" + mark + c.ClientIP()
+	now := time.Now().Unix()
+
 	listLength, err := rdb.LLen(ctx, key).Result()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -30,36 +31,30 @@ func redisRateLimiter(c *gin.Context, maxRequestNum int, duration int64, mark st
 		return
 	}
 	if listLength < int64(maxRequestNum) {
-		rdb.LPush(ctx, key, time.Now().Format(timeFormat))
-		rdb.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
+		pipe := rdb.Pipeline()
+		pipe.LPush(ctx, key, now)
+		pipe.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
+		_, _ = pipe.Exec(ctx)
 	} else {
 		oldTimeStr, _ := rdb.LIndex(ctx, key, -1).Result()
-		oldTime, err := time.Parse(timeFormat, oldTimeStr)
+		oldTime, err := strconv.ParseInt(oldTimeStr, 10, 64)
 		if err != nil {
 			fmt.Println(err)
 			c.Status(http.StatusInternalServerError)
 			c.Abort()
 			return
 		}
-		nowTimeStr := time.Now().Format(timeFormat)
-		nowTime, err := time.Parse(timeFormat, nowTimeStr)
-		if err != nil {
-			fmt.Println(err)
-			c.Status(http.StatusInternalServerError)
-			c.Abort()
-			return
-		}
-		// time.Since will return negative number!
-		// See: https://stackoverflow.com/questions/50970900/why-is-time-since-returning-negative-durations-on-windows
-		if int64(nowTime.Sub(oldTime).Seconds()) < duration {
+		if now-oldTime < duration {
 			rdb.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
 			c.Status(http.StatusTooManyRequests)
 			c.Abort()
 			return
 		} else {
-			rdb.LPush(ctx, key, time.Now().Format(timeFormat))
-			rdb.LTrim(ctx, key, 0, int64(maxRequestNum-1))
-			rdb.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
+			pipe := rdb.Pipeline()
+			pipe.LPush(ctx, key, now)
+			pipe.LTrim(ctx, key, 0, int64(maxRequestNum-1))
+			pipe.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
+			_, _ = pipe.Exec(ctx)
 		}
 	}
 }
@@ -155,6 +150,8 @@ func userRateLimitFactory(maxRequestNum int, duration int64, mark string) func(c
 func userRedisRateLimiter(c *gin.Context, maxRequestNum int, duration int64, key string) {
 	ctx := context.Background()
 	rdb := common.RDB
+	now := time.Now().Unix()
+
 	listLength, err := rdb.LLen(ctx, key).Result()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -163,34 +160,30 @@ func userRedisRateLimiter(c *gin.Context, maxRequestNum int, duration int64, key
 		return
 	}
 	if listLength < int64(maxRequestNum) {
-		rdb.LPush(ctx, key, time.Now().Format(timeFormat))
-		rdb.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
+		pipe := rdb.Pipeline()
+		pipe.LPush(ctx, key, now)
+		pipe.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
+		_, _ = pipe.Exec(ctx)
 	} else {
 		oldTimeStr, _ := rdb.LIndex(ctx, key, -1).Result()
-		oldTime, err := time.Parse(timeFormat, oldTimeStr)
+		oldTime, err := strconv.ParseInt(oldTimeStr, 10, 64)
 		if err != nil {
 			fmt.Println(err)
 			c.Status(http.StatusInternalServerError)
 			c.Abort()
 			return
 		}
-		nowTimeStr := time.Now().Format(timeFormat)
-		nowTime, err := time.Parse(timeFormat, nowTimeStr)
-		if err != nil {
-			fmt.Println(err)
-			c.Status(http.StatusInternalServerError)
-			c.Abort()
-			return
-		}
-		if int64(nowTime.Sub(oldTime).Seconds()) < duration {
+		if now-oldTime < duration {
 			rdb.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
 			c.Status(http.StatusTooManyRequests)
 			c.Abort()
 			return
 		} else {
-			rdb.LPush(ctx, key, time.Now().Format(timeFormat))
-			rdb.LTrim(ctx, key, 0, int64(maxRequestNum-1))
-			rdb.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
+			pipe := rdb.Pipeline()
+			pipe.LPush(ctx, key, now)
+			pipe.LTrim(ctx, key, 0, int64(maxRequestNum-1))
+			pipe.Expire(ctx, key, common.RateLimitKeyExpirationDuration)
+			_, _ = pipe.Exec(ctx)
 		}
 	}
 }

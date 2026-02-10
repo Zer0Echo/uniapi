@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/common/limiter"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/setting"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/common/limiter"
+	"github.com/Zer0Echo/uniapi/constant"
+	"github.com/Zer0Echo/uniapi/setting"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -40,20 +40,15 @@ func checkRedisRateLimit(ctx context.Context, rdb *redis.Client, key string, max
 	}
 
 	// 检查时间窗口
+	now := time.Now().Unix()
 	oldTimeStr, _ := rdb.LIndex(ctx, key, -1).Result()
-	oldTime, err := time.Parse(timeFormat, oldTimeStr)
+	oldTime, err := strconv.ParseInt(oldTimeStr, 10, 64)
 	if err != nil {
 		return false, err
 	}
 
-	nowTimeStr := time.Now().Format(timeFormat)
-	nowTime, err := time.Parse(timeFormat, nowTimeStr)
-	if err != nil {
-		return false, err
-	}
 	// 如果在时间窗口内已达到限制，拒绝请求
-	subTime := nowTime.Sub(oldTime).Seconds()
-	if int64(subTime) < duration {
+	if now-oldTime < duration {
 		rdb.Expire(ctx, key, time.Duration(setting.ModelRequestRateLimitDurationMinutes)*time.Minute)
 		return false, nil
 	}
@@ -68,10 +63,12 @@ func recordRedisRequest(ctx context.Context, rdb *redis.Client, key string, maxC
 		return
 	}
 
-	now := time.Now().Format(timeFormat)
-	rdb.LPush(ctx, key, now)
-	rdb.LTrim(ctx, key, 0, int64(maxCount-1))
-	rdb.Expire(ctx, key, time.Duration(setting.ModelRequestRateLimitDurationMinutes)*time.Minute)
+	now := time.Now().Unix()
+	pipe := rdb.Pipeline()
+	pipe.LPush(ctx, key, now)
+	pipe.LTrim(ctx, key, 0, int64(maxCount-1))
+	pipe.Expire(ctx, key, time.Duration(setting.ModelRequestRateLimitDurationMinutes)*time.Minute)
+	_, _ = pipe.Exec(ctx)
 }
 
 // Redis限流处理器

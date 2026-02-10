@@ -2,69 +2,67 @@ package common
 
 import (
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
+type rateLimitEntry struct {
+	mu    sync.Mutex
+	queue []int64
+}
+
 type InMemoryRateLimiter struct {
-	store              map[string]*[]int64
-	mutex              sync.Mutex
+	store              sync.Map // map[string]*rateLimitEntry
 	expirationDuration time.Duration
+	initialized        int32 // atomic flag
 }
 
 func (l *InMemoryRateLimiter) Init(expirationDuration time.Duration) {
-	if l.store == nil {
-		l.mutex.Lock()
-		if l.store == nil {
-			l.store = make(map[string]*[]int64)
-			l.expirationDuration = expirationDuration
-			if expirationDuration > 0 {
-				go l.clearExpiredItems()
-			}
+	if atomic.CompareAndSwapInt32(&l.initialized, 0, 1) {
+		l.expirationDuration = expirationDuration
+		if expirationDuration > 0 {
+			go l.clearExpiredItems()
 		}
-		l.mutex.Unlock()
 	}
 }
 
 func (l *InMemoryRateLimiter) clearExpiredItems() {
 	for {
 		time.Sleep(l.expirationDuration)
-		l.mutex.Lock()
 		now := time.Now().Unix()
-		for key := range l.store {
-			queue := l.store[key]
-			size := len(*queue)
-			if size == 0 || now-(*queue)[size-1] > int64(l.expirationDuration.Seconds()) {
-				delete(l.store, key)
+		l.store.Range(func(key, value any) bool {
+			entry := value.(*rateLimitEntry)
+			entry.mu.Lock()
+			size := len(entry.queue)
+			if size == 0 || now-entry.queue[size-1] > int64(l.expirationDuration.Seconds()) {
+				entry.mu.Unlock()
+				l.store.Delete(key)
+			} else {
+				entry.mu.Unlock()
 			}
-		}
-		l.mutex.Unlock()
+			return true
+		})
 	}
 }
 
 // Request parameter duration's unit is seconds
 func (l *InMemoryRateLimiter) Request(key string, maxRequestNum int, duration int64) bool {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	// [old <-- new]
-	queue, ok := l.store[key]
+	val, _ := l.store.LoadOrStore(key, &rateLimitEntry{
+		queue: make([]int64, 0, maxRequestNum),
+	})
+	entry := val.(*rateLimitEntry)
+	entry.mu.Lock()
+	defer entry.mu.Unlock()
+
 	now := time.Now().Unix()
-	if ok {
-		if len(*queue) < maxRequestNum {
-			*queue = append(*queue, now)
-			return true
-		} else {
-			if now-(*queue)[0] >= duration {
-				*queue = (*queue)[1:]
-				*queue = append(*queue, now)
-				return true
-			} else {
-				return false
-			}
-		}
-	} else {
-		s := make([]int64, 0, maxRequestNum)
-		l.store[key] = &s
-		*(l.store[key]) = append(*(l.store[key]), now)
+	if len(entry.queue) < maxRequestNum {
+		entry.queue = append(entry.queue, now)
+		return true
 	}
-	return true
+	if now-entry.queue[0] >= duration {
+		entry.queue = entry.queue[1:]
+		entry.queue = append(entry.queue, now)
+		return true
+	}
+	return false
 }

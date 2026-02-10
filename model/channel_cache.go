@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/Zer0Echo/uniapi/common"
+	"github.com/Zer0Echo/uniapi/constant"
+	"github.com/Zer0Echo/uniapi/setting/ratio_setting"
 )
 
 var group2model2channels map[string]map[string][]int // enabled channel
@@ -122,24 +122,25 @@ func GetRandomSatisfiedChannel(group string, model string, retry int) (*Channel,
 		return nil, fmt.Errorf("数据库一致性错误，渠道# %d 不存在，请联系管理员修复", channels[0])
 	}
 
-	uniquePriorities := make(map[int]bool)
+	// channels 已按 priority 降序排列 (InitChannelCache 保证)
+	var sortedUniquePriorities []int64
+	var lastPriority int64 = -1
 	for _, channelId := range channels {
 		if channel, ok := channelsIDM[channelId]; ok {
-			uniquePriorities[int(channel.GetPriority())] = true
+			p := channel.GetPriority()
+			if p != lastPriority {
+				sortedUniquePriorities = append(sortedUniquePriorities, p)
+				lastPriority = p
+			}
 		} else {
 			return nil, fmt.Errorf("数据库一致性错误，渠道# %d 不存在，请联系管理员修复", channelId)
 		}
 	}
-	var sortedUniquePriorities []int
-	for priority := range uniquePriorities {
-		sortedUniquePriorities = append(sortedUniquePriorities, priority)
-	}
-	sort.Sort(sort.Reverse(sort.IntSlice(sortedUniquePriorities)))
 
-	if retry >= len(uniquePriorities) {
-		retry = len(uniquePriorities) - 1
+	if retry >= len(sortedUniquePriorities) {
+		retry = len(sortedUniquePriorities) - 1
 	}
-	targetPriority := int64(sortedUniquePriorities[retry])
+	targetPriority := sortedUniquePriorities[retry]
 
 	// get the priority for the given retry number
 	var sumWeight = 0
@@ -257,9 +258,12 @@ func CacheUpdateChannel(channel *Channel) {
 		return
 	}
 
-	println("CacheUpdateChannel:", channel.Id, channel.Name, channel.Status, channel.ChannelInfo.MultiKeyPollingIndex)
-
-	println("before:", channelsIDM[channel.Id].ChannelInfo.MultiKeyPollingIndex)
+	if common.DebugEnabled {
+		println("CacheUpdateChannel:", channel.Id, channel.Name, channel.Status, channel.ChannelInfo.MultiKeyPollingIndex)
+		println("before:", channelsIDM[channel.Id].ChannelInfo.MultiKeyPollingIndex)
+	}
 	channelsIDM[channel.Id] = channel
-	println("after :", channelsIDM[channel.Id].ChannelInfo.MultiKeyPollingIndex)
+	if common.DebugEnabled {
+		println("after :", channelsIDM[channel.Id].ChannelInfo.MultiKeyPollingIndex)
+	}
 }
